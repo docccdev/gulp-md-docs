@@ -6,5 +6,11 @@ gulp.task('default', function() {
     .pipe(gulpMdDocs({
         templatePath: 'docs/template.tpl',
     }))
-    .pipe(gulp.dest('docs'))
+    .pipe(gulp.dest('docs'));
+});
+
+gulp.task('watch', function() {
+    gulp.watch('example/**/*.md', function(event) {
+        gulp.run('default');
+    });
 });

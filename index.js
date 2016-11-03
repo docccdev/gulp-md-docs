@@ -34,6 +34,11 @@ renderer.hr = function() {
 }
 
 renderer.code = function(code, language) {
+    var isPreview = _.includes(language, '+preview');
+
+    if (isPreview) {
+        // code = escape(code);
+    }
 
     var template = _.template(`
         <div class="uidocs-example">
