@@ -1,5 +1,11 @@
+<!--
+[index]
+-->
+
 # [gulp](http://gulpjs.com)-markdown-docs
 Parse markdown into an navigable HTML document with themed code syntax highlighting (via highlight.js), navigation menu (via yaml meta information), and flexible templating and styling.
+
+---
 
 ## Install
 
@@ -37,9 +43,9 @@ gulp.task('default', function () {
 label: Nav Label
 id: unique_slug
 categorySlug:
-categoryLabel: 
-categoryRank: 
-documentRank: 
+categoryLabel:
+categoryRank:
+documentRank:
 
 # Your Content
 ...
@@ -52,7 +58,7 @@ All sorting is done on a last-in basis, so the last rank seen is the value used 
 
 **NOTE**  slugs/ids need to be unique between categories and documents TODO: !!
 
-    categorySort: 'alphabetical', // 'alphabetical' || 'rank' 
+    categorySort: 'alphabetical', // 'alphabetical' || 'rank'
     documentSort: 'alphabetical', // 'alphabetical' || 'rank'
 
 #### External Stylesheet
@@ -71,15 +77,15 @@ gulp-markdown-docs includes a simple layout by default. `false` will prevent it 
 
     templatePath: __dirname + '/resources/index.html'
 
-gulp-markdown-docs includes a simple HTML document by default. Passing a path to a different HTML file allows you to customize the resulting documentation page. 
-**NOTE** This module looks for `<head>...</head>` to add stylesheets to, and `.doc-nav` and `.doc-content` to append the navigation items and documentation respectively. 
+gulp-markdown-docs includes a simple HTML document by default. Passing a path to a different HTML file allows you to customize the resulting documentation page.
+**NOTE** This module looks for `<head>...</head>` to add stylesheets to, and `.doc-nav` and `.doc-content` to append the navigation items and documentation respectively.
 
-#### Highlight theme 
-    
+#### Highlight theme
+
     highlightTheme: 'solarized_dark'
 
 see [highlight.js](https://highlightjs.org/) for available themes
-    
+
 
 #### Markdown
 
@@ -97,7 +103,7 @@ see [highlight.js](https://highlightjs.org/) for available themes
       smartypants: false
     }
 
-Defaults shown. See documentation for [marked](https://www.npmjs.org/package/marked) for additional details. 
+Defaults shown. See documentation for [marked](https://www.npmjs.org/package/marked) for additional details.
 
 
 ## License

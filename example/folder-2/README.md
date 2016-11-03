@@ -1,6 +1,5 @@
----
-topMenu: core
-sideMenu: default
----
+<!--
+[core, default, folder-2]
+-->
 
 ## Folder 2

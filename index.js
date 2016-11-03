@@ -10,9 +10,49 @@ var fs = require('fs');
 var File = gutil.File;
 var highlight = require('highlight.js');
 
+var renderer = new marked.Renderer();
+
+renderer.heading = function(text, level) {
+    var template = _.template('<h${lavel} class="uidocs-title uidocs-title_size_h${lavel}">${text}</h${lavel}>');
+
+    return template({
+        lavel: level,
+        text: text
+    });
+}
+
+renderer.paragraph = function(text) {
+    var template = _.template('<div class="uidocs-paragraph">${text}</div>');
+
+    return template({text: text});
+}
+
+renderer.hr = function() {
+    var template = _.template('<div class="uidocs-line"></div>');
+
+    return template();
+}
+
+renderer.code = function(code, language) {
+
+    var template = _.template(`
+        <div class="uidocs-example">
+            <div class="uidocs-example__label">${language}</div>
+            <div class="uidocs-example__value">
+                <pre class="uidocs-source"><code class="${language}">${code}</code></pre>
+            </div>
+        </div>
+    `);
+
+    return template({
+        code: code,
+        language: language,
+    });
+}
+
 function parseMarkdown(contents) {
     return marked(contents, {
-      renderer: new marked.Renderer(),
+      renderer: renderer,
       gfm: true,
       tables: true,
       breaks: false,
@@ -28,73 +68,58 @@ function gulpMarkdownDocs(options) {
         throw new PluginError('gulp-md-docs', 'Missing file argument for gulp-md-docs');
     }
 
-    var TEMPLATE = _.template(fs.readFileSync(options.templatePath).toString());
-    var templateValues = {
-        headerMenu: Array(),
-        content: String()
-    };
-
-    var TOP_MENU = [
-        {
-            href: 'test1',
-            text: 'text1'
-        },
-        {
-            href: 'test2',
-            text: 'text2'
-        }
-    ];
-
-    var firstFile = null;
+    var baseTemplate = _.template(fs.readFileSync(options.templatePath).toString());
     var collectedDocs = [];
 
     function bufferContents(file) {
         if (file.isNull()) return; // ignore
         if (file.isStream()) return this.emit('error', new PluginError('gulp-markdown-docs',  'Streaming not supported'));
 
-        var meta, html;
-        if (!firstFile) firstFile = file;
         try {
-            var split_text = file.contents.toString().split(/\n\n/);
-            var markdown = split_text.splice(1, split_text.length-1).join('\n\n');
-            var mddoc = split_text[0].match(/<!-- mddoc[\s\S]*?-->/g);
+            var optionRegexp = /<!--([\s\S]*)-->/;
+            var contentString = file.contents.toString();
+            var splitText = contentString.split(/\n\n/);
+            var markdown = splitText.splice(1, splitText.length-1).join('\n\n');
+            var markdownOption = optionRegexp.exec(contentString);
 
-            console.error(mddoc.toString().replace('<!-- mddoc', ''));
+            if(markdownOption) {
+                var yamlObj = yaml.safeLoad(markdownOption[1]);
+                var filePath = yamlObj.join('/')+'.html';
+                var content = parseMarkdown(markdown);
+                var statc_path = _.map(yamlObj.slice(1), function(){ return '../'; }).join('');
 
-            collectedDocs.push({
-                // meta: yaml.safeLoad(split_text[0]),
-                path: file.path,
-                html: parseMarkdown(markdown) 
-            });
+                collectedDocs.push({
+                    path: filePath,
+                    html: baseTemplate({
+                        path: statc_path,
+                        headerMenu: [],
+                        sideMenu: [],
+                        content: content
+                    })
+                });
+            }
         } catch (err) {
             gutil.log(gutil.colors.red('ERROR failed to parse api doc ' + file.path +'\n'), err);
         }
     }
 
     function endStream() {
-        joinedFile = firstFile.clone({contents: false});
-        joinedFile.contents = new Buffer(collectedDocs[0].html);
-        // joinedFile.path = joinedFile.path.replace('.md', '.html');
+        var newThis = this;
 
-        // console.error(collectedDocs);
+        _.each(collectedDocs, function(data) {
+            try {
+                var newFile = new gutil.File({
+                    path: data.path,
+                    contents: new Buffer(data.html)
+                });
+                newThis.emit('data', newFile);
+                gutil.log(gutil.colors.green(data.path));
+            } catch (err) {
+                gutil.log(gutil.colors.red('ERROR ' + data.path), err);
+            }
+        });
 
-        this.emit('data', joinedFile);
-
-        // if (firstFile) {
-        //     var joinedFile = firstFile;
-
-
-        //     console.error(file.path);
-
-        //     // if (typeof fileOpt === 'string') {
-        //     //     joinedFile = firstFile.clone({contents: false});
-        //     //     joinedFile.path = path.join(firstFile.base, fileOpt)
-        //     // }
-        //             // joinedFile.contents = new Buffer($.html());
-
-        // }
         this.emit('end');
-
     }
 
   return through(bufferContents, endStream);

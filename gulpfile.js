@@ -4,7 +4,7 @@ var gulpMdDocs = require('./index');
 gulp.task('default', function() {
   return gulp.src('example/**/*.md')
     .pipe(gulpMdDocs({
-        templatePath: 'template/index.html',
+        templatePath: 'docs/template.tpl',
     }))
     .pipe(gulp.dest('docs'))
 });

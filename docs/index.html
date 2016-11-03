@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Gulp md docs</title>
+        <meta charset="utf-8">
+        <link href="uikit.css" media="all" rel="stylesheet" type="text/css" />
+        <link href="style.css" media="all" rel="stylesheet" type="text/css" />
+        <link rel='stylesheet' href='https://fonts.googleapis.com/css?family=Roboto:400,700italic,700,500,500italic,400italic,300italic,300&amp;subset=latin,cyrillic'>
+        <link rel="stylesheet" href="http://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.6.0/styles/github.min.css">
+        <script src="http://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.6.0/highlight.min.js"></script>
+        <script>hljs.initHighlightingOnLoad();</script>
+    </head>
+    <body>
+        <div class="ui-grid ui-grid_size_xxxl">
+            <div class="ui-grid__item ui-width-1-1">
+                <div class="uidocs-header" id="uikit-header">
+                    <div class="uidocs-page">
+                        <a href="/uikit" class="uidocs-header__logo">uikit</a>
+                        
+                    </div>
+                </div>
+            </div>
+            <div class="ui-grid__item ui-width-1-1">
+                <div class="uidocs-page">
+                    <div class="ui-grid ui-grid_theme_divider ui-grid_size_xl">
+                        <div class="ui-grid__item ui-width-1-4">
+                            left menu
+                        </div>
+                        <div class="ui-grid__item ui-width-3-4">
+                            <h1 class="uidocs-title uidocs-title_size_h1"><a href="http://gulpjs.com">gulp</a>-markdown-docs</h1><div class="uidocs-paragraph">Parse markdown into an navigable HTML document with themed code syntax highlighting (via highlight.js), navigation menu (via yaml meta information), and flexible templating and styling.</div><div class="uidocs-line"></div><h2 class="uidocs-title uidocs-title_size_h2">Install</h2>
+        <div class="uidocs-example">
+            <div class="uidocs-example__label">sh</div>
+            <div class="uidocs-example__value">
+                <pre class="uidocs-source"><code class="sh">$ npm install --save-dev gulp-markdown-docs</code></pre>
+            </div>
+        </div>
+    <h2 class="uidocs-title uidocs-title_size_h2">Usage</h2>
+        <div class="uidocs-example">
+            <div class="uidocs-example__label">js</div>
+            <div class="uidocs-example__value">
+                <pre class="uidocs-source"><code class="js">var gulp = require('gulp');
+var markdownDocs = require('gulp-markdown-docs');
+
+gulp.task('default', function () {
+  return gulp.src('docs/*.md')
+    .pipe(markdownDocs('index.html', {
+    ... options ...
+  }))
+    .pipe(gulp.dest('./documentation/'));
+});</code></pre>
+            </div>
+        </div>
+    <h3 class="uidocs-title uidocs-title_size_h3">OPTIONS (defaults shown)</h3><h4 class="uidocs-title uidocs-title_size_h4">Meta Information</h4>
+        <div class="uidocs-example">
+            <div class="uidocs-example__label">undefined</div>
+            <div class="uidocs-example__value">
+                <pre class="uidocs-source"><code class="undefined">yamlMeta: true</code></pre>
+            </div>
+        </div>
+    <div class="uidocs-paragraph"><em>Required</em> in order to construct the navigation menu. When set to true, each document given to gulp-markdown-docs should have a YAML header providing needed information about the document.</div>
+        <div class="uidocs-example">
+            <div class="uidocs-example__label">md</div>
+            <div class="uidocs-example__value">
+                <pre class="uidocs-source"><code class="md">---
+label: Nav Label
+id: unique_slug
+categorySlug:
+categoryLabel:
+categoryRank:
+documentRank:
+
+# Your Content
+...</code></pre>
+            </div>
+        </div>
+    <h4 class="uidocs-title uidocs-title_size_h4">Sorting (<code>yamlMeta</code> must be true)</h4><div class="uidocs-paragraph">If you wanted a document or category to always be at the end you could set this to 10000, or beginning -10000.</div><div class="uidocs-paragraph">All sorting is done on a last-in basis, so the last rank seen is the value used for the category</div><div class="uidocs-paragraph"><strong>NOTE</strong>  slugs/ids need to be unique between categories and documents TODO: !!</div>
+        <div class="uidocs-example">
+            <div class="uidocs-example__label">undefined</div>
+            <div class="uidocs-example__value">
+                <pre class="uidocs-source"><code class="undefined">categorySort: 'alphabetical', // 'alphabetical' || 'rank'
+documentSort: 'alphabetical', // 'alphabetical' || 'rank'</code></pre>
+            </div>
+        </div>
+    <h4 class="uidocs-title uidocs-title_size_h4">External Stylesheet</h4>
+        <div class="uidocs-example">
+            <div class="uidocs-example__label">undefined</div>
+            <div class="uidocs-example__value">
+                <pre class="uidocs-source"><code class="undefined">stylesheetUrl: ''</code></pre>
+            </div>
+        </div>
+    <div class="uidocs-paragraph">Relative or absolute URL pointing to an external CSS resource. If defined will be added to the document in a link tag.</div><h4 class="uidocs-title uidocs-title_size_h4">Layout Stylesheet</h4>
+        <div class="uidocs-example">
+            <div class="uidocs-example__label">undefined</div>
+            <div class="uidocs-example__value">
+                <pre class="uidocs-source"><code class="undefined">layoutStylesheetUrl: __dirname + '/resources/layout.css'</code></pre>
+            </div>
+        </div>
+    <div class="uidocs-paragraph">gulp-markdown-docs includes a simple layout by default. <code>false</code> will prevent it from including that layout</div><h4 class="uidocs-title uidocs-title_size_h4">Template HTML</h4>
+        <div class="uidocs-example">
+            <div class="uidocs-example__label">undefined</div>
+            <div class="uidocs-example__value">
+                <pre class="uidocs-source"><code class="undefined">templatePath: __dirname + '/resources/index.html'</code></pre>
+            </div>
+        </div>
+    <div class="uidocs-paragraph">gulp-markdown-docs includes a simple HTML document by default. Passing a path to a different HTML file allows you to customize the resulting documentation page.
+<strong>NOTE</strong> This module looks for <code>&lt;head&gt;...&lt;/head&gt;</code> to add stylesheets to, and <code>.doc-nav</code> and <code>.doc-content</code> to append the navigation items and documentation respectively.</div><h4 class="uidocs-title uidocs-title_size_h4">Highlight theme</h4>
+        <div class="uidocs-example">
+            <div class="uidocs-example__label">undefined</div>
+            <div class="uidocs-example__value">
+                <pre class="uidocs-source"><code class="undefined">highlightTheme: 'solarized_dark'</code></pre>
+            </div>
+        </div>
+    <div class="uidocs-paragraph">see <a href="https://highlightjs.org/">highlight.js</a> for available themes</div><h4 class="uidocs-title uidocs-title_size_h4">Markdown</h4>
+        <div class="uidocs-example">
+            <div class="uidocs-example__label">undefined</div>
+            <div class="uidocs-example__value">
+                <pre class="uidocs-source"><code class="undefined">markdown: {
+  highlight: function (code) {
+    return highlight.highlightAuto(code).value;
+  },
+  renderer: new marked.Renderer(),
+  gfm: true,
+  tables: true,
+  breaks: false,
+  pedantic: false,
+  sanitize: true,
+  smartLists: true,
+  smartypants: false
+}</code></pre>
+            </div>
+        </div>
+    <div class="uidocs-paragraph">Defaults shown. See documentation for <a href="https://www.npmjs.org/package/marked">marked</a> for additional details.</div><h2 class="uidocs-title uidocs-title_size_h2">License</h2><div class="uidocs-paragraph">MIT © <a href="https://github.com/sojournerc">Christopher Meyer</a></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="ui-grid__item ui-width-1-1 ui-grid ui-grid_align_center">
+                <div class="ui-grid__item">© Bigl</div>
+                <br>
+                <br>
+            </div>
+        </div>
+    </body>
+</html>
