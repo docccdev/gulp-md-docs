@@ -2,13 +2,9 @@ var gutil = require('gulp-util');
 var _ = require('lodash');
 var through = require('through');
 var path = require('path');
-var cheerio = require('cheerio');
 var marked = require('marked');
-var yaml = require('js-yaml');
 var PluginError = gutil.PluginError;
 var fs = require('fs');
-var File = gutil.File;
-var highlight = require('highlight.js');
 
 var renderer = new marked.Renderer();
 
@@ -75,6 +71,15 @@ function gulpMarkdownDocs(options) {
 
     var baseTemplate = _.template(fs.readFileSync(options.templatePath).toString());
     var collectedDocs = [];
+    var navTree = [];
+
+    function parseJSON(string, file){
+        try {
+            return JSON.parse(string);
+        } catch (err) {
+            gutil.log(gutil.colors.red('JSON parse failed ' + file.path), err);
+        }
+    }
 
     function bufferContents(file) {
         if (file.isNull()) return; // ignore
@@ -87,11 +92,26 @@ function gulpMarkdownDocs(options) {
             var markdown = splitText.splice(1, splitText.length-1).join('\n\n');
             var markdownOption = optionRegexp.exec(contentString);
 
+
             if(markdownOption) {
-                var yamlObj = yaml.safeLoad(markdownOption[1]);
-                var filePath = yamlObj.join('/')+'.html';
+                var fileOptions = parseJSON(markdownOption[1], file);
+                var filePath = gutil.replaceExtension(fileOptions.join('/'), '.html');
                 var content = parseMarkdown(markdown);
-                var statc_path = _.map(yamlObj.slice(1), function(){ return '../'; }).join('');
+                var statc_path = _.map(fileOptions.slice(1), function(){ return '../'; }).join('');
+
+                // _.each(fileOptions, function(name, index) {
+                //     if (!navTree[index].length) {
+                //         navTree[index] = [];
+                //     }
+
+                //     console.log(navTree[index], name, _.indexOf(navTree[index], name));
+
+                //     if (!_.indexOf(navTree[index], name)) {
+                //         navTree[index].push(name);
+                //     }
+                // });
+
+                // console.log(navTree);
 
                 collectedDocs.push({
                     path: filePath,
@@ -120,7 +140,7 @@ function gulpMarkdownDocs(options) {
                 newThis.emit('data', newFile);
                 gutil.log(gutil.colors.green(data.path));
             } catch (err) {
-                gutil.log(gutil.colors.red('ERROR ' + data.path), err);
+                gutil.log(gutil.colors.red('ERROR write a file ' + data.path), err);
             }
         });
 
