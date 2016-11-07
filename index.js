@@ -12,92 +12,40 @@ exports.default = function () {
     var styleFile = _fs2.default.readFileSync(options.stylePath);
 
     var collectedDocs = [];
-    var navTree = [];
+    var navTree = {};
 
-    var navTree2 = [{
-        alias: 'core',
-        href: 'core.html',
-        children: [{
-            alias: 'default',
-            href: 'default.html',
-            children: [{
-                alias: 'folder-1',
-                href: 'folder-1.html'
-            }, {
-                alias: 'folder-2',
-                href: 'folder-1.html'
-            }, {
-                alias: 'folder-3',
-                href: 'folder-1.html'
-            }]
-        }]
-    }];
-
-    var navTree3 = [];
-
-    function forNavTree(pathSep, tree) {
-        _lodash2.default.each(pathSep, function (value, index) {
-            var curItem = {
-                alias: _path2.default.basename(value, '.html')
-            };
-            console.log(curItem);
-            var findItem = _lodash2.default.find(tree, curItem);
-
-            if (findItem) {
-                forNavTree(pathSep.slice(1), findItem.children);
-            } else {
-                tree.push(_lodash2.default.extend(curItem, { children: [] }));
-                forNavTree(pathSep.slice(1), curItem.children);
-            }
-        });
-    }
-
-    function bufferContents(file) {
+    function bufferContents(file, i) {
         if (file.isNull()) return;
         if (file.isStream()) return this.emit('error', new _gulpUtil2.default.PluginError(PLUGIN_NAME, 'Streaming not supported'));
 
         try {
-            var filePath;
-            var pathSep;
-            var dirPath;
-            var static_path;
+            var markdown = parseMarkdown(file);
 
-            (function () {
-                var markdown = parseMarkdown(file);
+            if (markdown.path) {
+                var filePath = markdown.path;
+                var pathSep = filePath.split(_path2.default.sep);
+                var dirPath = _path2.default.dirname(filePath);
+                var static_path = _path2.default.relative(dirPath, __dirname);
 
-                if (markdown.path) {
-                    filePath = markdown.path;
-                    pathSep = filePath.split(_path2.default.sep);
-                    dirPath = _path2.default.dirname(filePath);
-                    static_path = _path2.default.relative(dirPath, __dirname);
+                _lodash2.default.each(pathSep, function (value, index) {
+                    var currentPathSep = pathSep.slice(0, index + 1);
+                    var href = formatPathHtml(_path2.default.join.apply(null, currentPathSep));
+                    var objectPath = currentPathSep.join('.children.');
+                    var currentNav = _lodash2.default.get(navTree, objectPath);
 
+                    if (!currentNav) {
+                        _lodash2.default.set(navTree, objectPath, { href: href });
+                    }
+                });
 
-                    forNavTree(pathSep, navTree3);
-
-                    _lodash2.default.each(pathSep, function (value, index) {
-                        if (!navTree[index]) {
-                            navTree[index] = [];
-                        }
-
-                        var menuData = {
-                            content: _path2.default.basename(value, '.html'),
-                            href: formatPathHtml(markdown.path)
-                        };
-
-                        if (!_lodash2.default.find(navTree[index], menuData)) {
-                            navTree[index].push(menuData);
-                        }
-                    });
-
-                    collectedDocs.push({
-                        path: formatPathHtml(markdown.path),
-                        static_path: static_path,
-                        html: (0, _marked2.default)(markdown.content, {
-                            renderer: renderBlock
-                        })
-                    });
-                }
-            })();
+                collectedDocs.push({
+                    path: formatPathHtml(markdown.path),
+                    static_path: static_path,
+                    html: (0, _marked2.default)(markdown.content, {
+                        renderer: renderBlock
+                    })
+                });
+            }
         } catch (err) {
             _gulpUtil2.default.log(_gulpUtil2.default.colors.red('ERROR failed to parse api doc ' + file.path), err);
         }
@@ -122,8 +70,6 @@ exports.default = function () {
                 _gulpUtil2.default.log(_gulpUtil2.default.colors.red('ERROR write a file ' + data.path), err);
             }
         });
-
-        console.log(navTree3);
 
         this.emit('end');
     }

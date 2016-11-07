@@ -17,15 +17,13 @@
                 <div class="uidocs-header" id="uikit-header">
                     <div class="uidocs-page">
                         <a href="/uikit" class="uidocs-header__logo">uikit</a>
-                        <% if (!_.isEmpty(navTree[0])) { %>
-                            <div class="uidocs-header__menu">
-                                <% _.forEach(navTree[0], function(data) { %>
-                                    <a href="<%- data.href %>" class="uidocs-header__menu-item">
-                                        <%- data.content %>
-                                    </a>
-                                <% }) %>
-                            </div>
-                        <% } %>
+                        <div class="uidocs-header__menu">
+                            <% _.forIn(navTree, function(value, key) { %>
+                                <a href="<%- value.href %>" class="uidocs-header__menu-item">
+                                    <%- key %>
+                                </a>
+                            <% }) %>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -33,15 +31,18 @@
                 <div class="uidocs-page">
                     <div class="ui-grid ui-grid_theme_divider ui-grid_size_xl">
                         <div class="ui-grid__item ui-width-1-4">
-                            <% if (!_.isEmpty(navTree[2])) { %>
+                            <% _.forIn(navTree.core.children, function(value, key) { %>
                                 <div class="uidocs-nav">
-                                    <% _.forEach(navTree[2], function(data) { %>
-                                        <a href="<%- data.href %>" class="uidocs-nav__item">
-                                            <%- data.content %>
+                                    <div class="uidocs-nav__title">
+                                        <%- key %>
+                                    </div>
+                                    <% _.forIn(value.children, function(value, key) { %>
+                                        <a href="<%- value.href %>" class="uidocs-nav__item">
+                                            <%- key %>
                                         </a>
                                     <% }) %>
                                 </div>
-                            <% } %>
+                            <% }) %>
                         </div>
                         <div class="ui-grid__item ui-width-3-4">
                             <%= content %>

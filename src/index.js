@@ -59,59 +59,9 @@ export default function (options = {}) {
     const styleFile = fs.readFileSync(options.stylePath);
 
     let collectedDocs = [];
-    let navTree = [];
+    let navTree = {};
 
-
-    const navTree2 = [
-        {
-            alias: 'core',
-            href: 'core.html',
-            children: [
-                {
-                    alias: 'default',
-                    href: 'default.html',
-                    children: [
-                        {
-                            alias: 'folder-1',
-                            href: 'folder-1.html',
-                        },
-                        {
-                            alias: 'folder-2',
-                            href: 'folder-1.html',
-                        },
-                        {
-                            alias: 'folder-3',
-                            href: 'folder-1.html',
-                        }
-                    ]
-                }
-            ]
-        }
-    ]
-
-    let navTree3 = [];
-
-    function forNavTree(pathSep, tree) {
-        _.each(pathSep, function(value, index) {
-            const curItem = {
-                alias: path.basename(value, '.html'),
-                // href: formatPathHtml(path.join.apply(null, pathSep.slice(0, index+1))),
-            }
-            console.log(curItem)
-            const findItem = _.find(tree, curItem);
-
-            if (findItem) {
-                forNavTree(pathSep.slice(1), findItem.children)
-            } else {
-                tree.push(
-                    _.extend(curItem, { children: [] })
-                );
-                forNavTree(pathSep.slice(1), curItem.children);
-            }
-        });
-    }
-
-    function bufferContents(file) {
+    function bufferContents(file, i) {
         if (file.isNull()) return;
         if (file.isStream()) return this.emit('error', new gutil.PluginError(PLUGIN_NAME,  'Streaming not supported'));
 
@@ -124,21 +74,15 @@ export default function (options = {}) {
                 var dirPath = path.dirname(filePath)
                 var static_path = path.relative(dirPath, __dirname);
 
-                forNavTree(pathSep, navTree3)
 
                 _.each(pathSep, function(value, index) {
-                    if(!navTree[index]) {
-                        navTree[index] = [];
-                    }
+                    const currentPathSep = pathSep.slice(0, index + 1);
+                    const href = formatPathHtml(path.join.apply(null, currentPathSep));
+                    const objectPath = currentPathSep.join('.children.');
+                    const currentNav = _.get(navTree, objectPath);
 
-                    var menuData = {
-                        content: path.basename(value, '.html'),
-                        href: formatPathHtml(markdown.path),
-                    };
-
-
-                    if(!_.find(navTree[index], menuData)) {
-                        navTree[index].push(menuData);
+                    if (!currentNav) {
+                        _.set(navTree, objectPath, { href });
                     }
                 });
 
@@ -172,8 +116,6 @@ export default function (options = {}) {
                 gutil.log(gutil.colors.red('ERROR write a file ' + data.path), err);
             }
         });
-
-        console.log(navTree3);
 
         this.emit('end');
     }
