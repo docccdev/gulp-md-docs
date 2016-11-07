@@ -92,35 +92,43 @@ function gulpMarkdownDocs(options) {
             var markdown = splitText.splice(1, splitText.length-1).join('\n\n');
             var markdownOption = optionRegexp.exec(contentString);
 
-
             if(markdownOption) {
                 var fileOptions = parseJSON(markdownOption[1], file);
-                var filePath = gutil.replaceExtension(fileOptions.join('/'), '.html');
+
+                // console.log(fileOptions, file.path);
+
+                var filePath = path.join.apply(null, fileOptions);
                 var content = parseMarkdown(markdown);
-                var statc_path = _.map(fileOptions.slice(1), function(){ return '../'; }).join('');
+                var static_path = _.map(fileOptions.slice(1), function(){ return '../'; }).join('');
 
-                // _.each(fileOptions, function(name, index) {
-                //     if (!navTree[index].length) {
-                //         navTree[index] = [];
-                //     }
 
-                //     console.log(navTree[index], name, _.indexOf(navTree[index], name));
+                _.each(fileOptions, function(value, index) {
+                    if(!navTree[index]) {
+                        navTree[index] = [];
+                    }
 
-                //     if (!_.indexOf(navTree[index], name)) {
-                //         navTree[index].push(name);
-                //     }
-                // });
+                    var currentPath = path.join.apply(null, fileOptions.slice(0, index));
+                    var menuData = {
+                        content: value,
+                        href: path.format({
+                          dir: currentPath,
+                          name: value,
+                          ext: '.html'
+                        })
+                    };
 
-                // console.log(navTree);
+                    if(!_.find(navTree[index], menuData)) {
+                        navTree[index].push(menuData);
+                    }
+                });
 
                 collectedDocs.push({
-                    path: filePath,
-                    html: baseTemplate({
-                        path: statc_path,
-                        headerMenu: [],
-                        sideMenu: [],
-                        content: content
-                    })
+                    path: path.format({
+                        name: filePath,
+                        ext: '.html'
+                    }),
+                    static_path: static_path,
+                    html: content
                 });
             }
         } catch (err) {
@@ -135,7 +143,11 @@ function gulpMarkdownDocs(options) {
             try {
                 var newFile = new gutil.File({
                     path: data.path,
-                    contents: new Buffer(data.html)
+                    contents: new Buffer(baseTemplate({
+                        static_path: data.statc_path,
+                        navTree: navTree,
+                        content: data.html
+                    }))
                 });
                 newThis.emit('data', newFile);
                 gutil.log(gutil.colors.green(data.path));
@@ -143,6 +155,8 @@ function gulpMarkdownDocs(options) {
                 gutil.log(gutil.colors.red('ERROR write a file ' + data.path), err);
             }
         });
+
+        console.log(navTree);
 
         this.emit('end');
     }
