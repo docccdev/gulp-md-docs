@@ -1,167 +1,208 @@
-var gutil = require('gulp-util');
-var _ = require('lodash');
-var through = require('through');
-var path = require('path');
-var marked = require('marked');
-var PluginError = gutil.PluginError;
-var fs = require('fs');
+'use strict';
 
-var renderer = new marked.Renderer();
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
 
-renderer.heading = function(text, level) {
-    var template = _.template('<h${lavel} class="uidocs-title uidocs-title_size_h${lavel}">${text}</h${lavel}>');
+exports.default = function () {
+    var options = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
 
-    return template({
-        lavel: level,
-        text: text
-    });
-}
+    var templateCompiled = compileTemplate(options.templatePath);
+    var renderBlock = _lodash2.default.extend(new _marked2.default.Renderer(), templateCompiled.block);
+    var styleFile = _fs2.default.readFileSync(options.stylePath);
 
-renderer.paragraph = function(text) {
-    var template = _.template('<div class="uidocs-paragraph">${text}</div>');
-
-    return template({text: text});
-}
-
-renderer.hr = function() {
-    var template = _.template('<div class="uidocs-line"></div>');
-
-    return template();
-}
-
-renderer.code = function(code, language) {
-    var isPreview = _.includes(language, '+preview');
-
-    if (isPreview) {
-        // code = escape(code);
-    }
-
-    var template = _.template(`
-        <div class="uidocs-example">
-            <div class="uidocs-example__label">${language}</div>
-            <div class="uidocs-example__value">
-                <pre class="uidocs-source"><code class="${language}">${code}</code></pre>
-            </div>
-        </div>
-    `);
-
-    return template({
-        code: code,
-        language: language,
-    });
-}
-
-function parseMarkdown(contents) {
-    return marked(contents, {
-      renderer: renderer,
-      gfm: true,
-      tables: true,
-      breaks: false,
-      pedantic: false,
-      sanitize: true,
-      smartLists: true,
-      smartypants: false
-    })
-}
-
-function gulpMarkdownDocs(options) {
-    if (!_.isObject(options)) {
-        throw new PluginError('gulp-md-docs', 'Missing file argument for gulp-md-docs');
-    }
-
-    var baseTemplate = _.template(fs.readFileSync(options.templatePath).toString());
     var collectedDocs = [];
     var navTree = [];
 
-    function parseJSON(string, file){
-        try {
-            return JSON.parse(string);
-        } catch (err) {
-            gutil.log(gutil.colors.red('JSON parse failed ' + file.path), err);
-        }
+    var navTree2 = [{
+        alias: 'core',
+        href: 'core.html',
+        children: [{
+            alias: 'default',
+            href: 'default.html',
+            children: [{
+                alias: 'folder-1',
+                href: 'folder-1.html'
+            }, {
+                alias: 'folder-2',
+                href: 'folder-1.html'
+            }, {
+                alias: 'folder-3',
+                href: 'folder-1.html'
+            }]
+        }]
+    }];
+
+    var navTree3 = [];
+
+    function forNavTree(pathSep, tree) {
+        _lodash2.default.each(pathSep, function (value, index) {
+            var curItem = {
+                alias: _path2.default.basename(value, '.html')
+            };
+            console.log(curItem);
+            var findItem = _lodash2.default.find(tree, curItem);
+
+            if (findItem) {
+                forNavTree(pathSep.slice(1), findItem.children);
+            } else {
+                tree.push(_lodash2.default.extend(curItem, { children: [] }));
+                forNavTree(pathSep.slice(1), curItem.children);
+            }
+        });
     }
 
     function bufferContents(file) {
-        if (file.isNull()) return; // ignore
-        if (file.isStream()) return this.emit('error', new PluginError('gulp-markdown-docs',  'Streaming not supported'));
+        if (file.isNull()) return;
+        if (file.isStream()) return this.emit('error', new _gulpUtil2.default.PluginError(PLUGIN_NAME, 'Streaming not supported'));
 
         try {
-            var optionRegexp = /<!--([\s\S]*)-->/;
-            var contentString = file.contents.toString();
-            var splitText = contentString.split(/\n\n/);
-            var markdown = splitText.splice(1, splitText.length-1).join('\n\n');
-            var markdownOption = optionRegexp.exec(contentString);
+            var filePath;
+            var pathSep;
+            var dirPath;
+            var static_path;
 
-            if(markdownOption) {
-                var fileOptions = parseJSON(markdownOption[1], file);
+            (function () {
+                var markdown = parseMarkdown(file);
 
-                // console.log(fileOptions, file.path);
+                if (markdown.path) {
+                    filePath = markdown.path;
+                    pathSep = filePath.split(_path2.default.sep);
+                    dirPath = _path2.default.dirname(filePath);
+                    static_path = _path2.default.relative(dirPath, __dirname);
 
-                var filePath = path.join.apply(null, fileOptions);
-                var content = parseMarkdown(markdown);
-                var static_path = _.map(fileOptions.slice(1), function(){ return '../'; }).join('');
 
+                    forNavTree(pathSep, navTree3);
 
-                _.each(fileOptions, function(value, index) {
-                    if(!navTree[index]) {
-                        navTree[index] = [];
-                    }
+                    _lodash2.default.each(pathSep, function (value, index) {
+                        if (!navTree[index]) {
+                            navTree[index] = [];
+                        }
 
-                    var currentPath = path.join.apply(null, fileOptions.slice(0, index));
-                    var menuData = {
-                        content: value,
-                        href: path.format({
-                          dir: currentPath,
-                          name: value,
-                          ext: '.html'
+                        var menuData = {
+                            content: _path2.default.basename(value, '.html'),
+                            href: formatPathHtml(markdown.path)
+                        };
+
+                        if (!_lodash2.default.find(navTree[index], menuData)) {
+                            navTree[index].push(menuData);
+                        }
+                    });
+
+                    collectedDocs.push({
+                        path: formatPathHtml(markdown.path),
+                        static_path: static_path,
+                        html: (0, _marked2.default)(markdown.content, {
+                            renderer: renderBlock
                         })
-                    };
-
-                    if(!_.find(navTree[index], menuData)) {
-                        navTree[index].push(menuData);
-                    }
-                });
-
-                collectedDocs.push({
-                    path: path.format({
-                        name: filePath,
-                        ext: '.html'
-                    }),
-                    static_path: static_path,
-                    html: content
-                });
-            }
+                    });
+                }
+            })();
         } catch (err) {
-            gutil.log(gutil.colors.red('ERROR failed to parse api doc ' + file.path +'\n'), err);
+            _gulpUtil2.default.log(_gulpUtil2.default.colors.red('ERROR failed to parse api doc ' + file.path), err);
         }
     }
 
     function endStream() {
-        var newThis = this;
+        var _this = this;
 
-        _.each(collectedDocs, function(data) {
+        _lodash2.default.each(collectedDocs, function (data) {
             try {
-                var newFile = new gutil.File({
+                var newFile = new _gulpUtil2.default.File({
                     path: data.path,
-                    contents: new Buffer(baseTemplate({
-                        static_path: data.statc_path,
+                    contents: new Buffer(templateCompiled.base({
+                        static_path: data.static_path,
                         navTree: navTree,
                         content: data.html
                     }))
                 });
-                newThis.emit('data', newFile);
-                gutil.log(gutil.colors.green(data.path));
+                _this.emit('data', newFile);
+                _gulpUtil2.default.log(_gulpUtil2.default.colors.green(data.path));
             } catch (err) {
-                gutil.log(gutil.colors.red('ERROR write a file ' + data.path), err);
+                _gulpUtil2.default.log(_gulpUtil2.default.colors.red('ERROR write a file ' + data.path), err);
             }
         });
 
-        console.log(navTree);
+        console.log(navTree3);
 
         this.emit('end');
     }
 
-  return through(bufferContents, endStream);
+    return (0, _through2.default)(bufferContents, endStream);
 };
 
-module.exports = gulpMarkdownDocs;
+var _gulpUtil = require('gulp-util');
+
+var _gulpUtil2 = _interopRequireDefault(_gulpUtil);
+
+var _lodash = require('lodash');
+
+var _lodash2 = _interopRequireDefault(_lodash);
+
+var _through = require('through');
+
+var _through2 = _interopRequireDefault(_through);
+
+var _path = require('path');
+
+var _path2 = _interopRequireDefault(_path);
+
+var _marked = require('marked');
+
+var _marked2 = _interopRequireDefault(_marked);
+
+var _fs = require('fs');
+
+var _fs2 = _interopRequireDefault(_fs);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+var PLUGIN_NAME = 'gulp-md-docs';
+
+function getTemplate(file_path) {
+    try {
+        return _lodash2.default.template(_fs2.default.readFileSync(file_path, 'utf8'));
+    } catch (err) {
+        throw new _gulpUtil2.default.PluginError(PLUGIN_NAME, err);
+    }
+}
+
+function compileTemplate(templatePath) {
+    if (!_lodash2.default.isObject(templatePath)) {
+        templatePath = {};
+    }
+    if (!_lodash2.default.isObject(templatePath.block)) {
+        templatePath.block = {};
+    }
+
+    return {
+        base: getTemplate(templatePath.base || _path2.default.join(__dirname, 'template/base.html')),
+        block: {
+            code: getTemplate(templatePath.block.code || _path2.default.join(__dirname, 'template/block/code.html')),
+            hr: getTemplate(templatePath.block.hr || _path2.default.join(__dirname, 'template/block/hr.html')),
+            heading: getTemplate(templatePath.block.heading || _path2.default.join(__dirname, 'template/block/heading.html')),
+            paragraph: getTemplate(templatePath.block.paragraph || _path2.default.join(__dirname, 'template/block/paragraph.html'))
+        }
+    };
+}
+
+function parseMarkdown(file) {
+    var fileString = file.contents.toString();
+    var regexp = /<!--([\s\S]*)-->/;
+    var splitText = fileString.split(/\n\n/);
+    var optionString = regexp.exec(fileString);
+
+    return {
+        path: optionString ? _lodash2.default.trim(optionString[1]) : null,
+        content: splitText.splice(1, splitText.length - 1).join('\n\n')
+    };
+}
+
+function formatPathHtml(pathString) {
+    return _path2.default.format({
+        name: pathString,
+        ext: '.html'
+    });
+}
+
+module.exports = exports['default'];

@@ -1,5 +1,5 @@
 <!--
-["core", "default", "folder-1"]
+core/default/folder-1
 -->
 
 ## Folder 1

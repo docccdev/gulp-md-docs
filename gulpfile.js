@@ -1,10 +1,10 @@
 var gulp = require('gulp');
-var gulpMdDocs = require('./index');
+var gulpMdDocs = require('./index.js');
 
 gulp.task('default', function() {
   return gulp.src('example/**/*.md')
     .pipe(gulpMdDocs({
-        templatePath: 'docs/template.tpl',
+        stylePath: './template/style2.css',
     }))
     .pipe(gulp.dest('docs'));
 });
