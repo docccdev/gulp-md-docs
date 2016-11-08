@@ -18,7 +18,7 @@
                     <div class="uidocs-page">
                         <a href="/uikit" class="uidocs-header__logo">uikit</a>
                         <div class="uidocs-header__menu">
-                            <% _.forIn(_.sortBy(navTree, 'sortIndex'), function(data, key) { %>
+                            <% _.forIn(_.sortBy(navTree, ['sortIndex', 'value']), function(data) { %>
                                 <a
                                     href="<%- data.href %>"
                                     class="
@@ -39,25 +39,27 @@
                 <div class="uidocs-page">
                     <div class="ui-grid ui-grid_theme_divider ui-grid_size_xl">
                         <div class="ui-grid__item ui-width-1-4">
-                            <% _.forIn(_.sortBy(navTree.core.children, 'sortIndex'), function(data, key) { %>
-                                <div class="uidocs-nav">
-                                    <div class="uidocs-nav__title">
-                                        <%- data.value %>
-                                    </div>
-                                    <% _.forIn(_.sortBy(data.children, 'sortIndex'), function(data, key) { %>
-                                        <a
-                                            href="<%- data.href %>"
-                                            class="
-                                                uidocs-nav__item
-                                                <% if(data.active) { %>
-                                                    uidocs-nav__item_state_active
-                                                <% } %>
-                                            "
-                                        >
+                            <% _.forIn(_.filter(navTree, 'active'), function(data) { %>
+                                <% _.forIn(_.sortBy(data.children, ['sortIndex', 'value']), function(data) { %>
+                                    <div class="uidocs-nav">
+                                        <div class="uidocs-nav__title">
                                             <%- data.value %>
-                                        </a>
-                                    <% }) %>
-                                </div>
+                                        </div>
+                                        <% _.forIn(_.sortBy(data.children, ['sortIndex', 'value']), function(data) { %>
+                                            <a
+                                                href="<%- data.href %>"
+                                                class="
+                                                    uidocs-nav__item
+                                                    <% if(data.active) { %>
+                                                        uidocs-nav__item_state_active
+                                                    <% } %>
+                                                "
+                                            >
+                                                <%- data.value %>
+                                            </a>
+                                        <% }) %>
+                                    </div>
+                                <% }) %>
                             <% }) %>
                         </div>
                         <div class="ui-grid__item ui-width-3-4">

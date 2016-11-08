@@ -43,7 +43,7 @@ function parseMarkdown(file) {
     const optionSplit = optionString.split('|');
 
     return {
-        path: optionSplit[0] ? optionSplit[0] : null,
+        path: optionSplit[0],
         sortIndex: Number(optionSplit[1]),
         content: splitText.splice(1, splitText.length-1).join('\n\n'),
     }
@@ -64,7 +64,6 @@ export default function (options = {}) {
     const collectionDocs = [];
     const navTree = {};
     const navIndex = {};
-    let counter = 0;
 
     function bufferContents(file) {
         if (file.isNull()) return;
@@ -90,7 +89,9 @@ export default function (options = {}) {
                     }
                 });
 
-                _.set(navIndex, filePathArray.join('.children.'), { sortIndex: markdown.sortIndex || counter++ });
+                if(markdown.sortIndex) {
+                    _.set(navIndex, filePathArray.join('.children.'), { sortIndex: markdown.sortIndex});
+                }
 
                 collectionDocs.push({
                     path: filePath,

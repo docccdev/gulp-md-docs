@@ -14,7 +14,6 @@ exports.default = function () {
     var collectionDocs = [];
     var navTree = {};
     var navIndex = {};
-    var counter = 0;
 
     function bufferContents(file) {
         if (file.isNull()) return;
@@ -41,7 +40,9 @@ exports.default = function () {
                         }
                     });
 
-                    _lodash2.default.set(navIndex, filePathArray.join('.children.'), { sortIndex: markdown.sortIndex || counter++ });
+                    if (markdown.sortIndex) {
+                        _lodash2.default.set(navIndex, filePathArray.join('.children.'), { sortIndex: markdown.sortIndex });
+                    }
 
                     collectionDocs.push({
                         path: filePath,
@@ -159,7 +160,7 @@ function parseMarkdown(file) {
     var optionSplit = optionString.split('|');
 
     return {
-        path: optionSplit[0] ? optionSplit[0] : null,
+        path: optionSplit[0],
         sortIndex: Number(optionSplit[1]),
         content: splitText.splice(1, splitText.length - 1).join('\n\n')
     };
