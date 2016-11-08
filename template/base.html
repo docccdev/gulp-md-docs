@@ -3,7 +3,7 @@
     <head>
         <title>Gulp md docs</title>
         <meta charset="utf-8">
-        <base href="<%= static_path %>">
+        <base href="<%= basePath %>">
         <link href="uikit.css" media="all" rel="stylesheet" type="text/css" />
         <link href="style.css" media="all" rel="stylesheet" type="text/css" />
         <link rel='stylesheet' href='https://fonts.googleapis.com/css?family=Roboto:400,700italic,700,500,500italic,400italic,300italic,300&amp;subset=latin,cyrillic'>
@@ -18,9 +18,17 @@
                     <div class="uidocs-page">
                         <a href="/uikit" class="uidocs-header__logo">uikit</a>
                         <div class="uidocs-header__menu">
-                            <% _.forIn(navTree, function(value, key) { %>
-                                <a href="<%- value.href %>" class="uidocs-header__menu-item">
-                                    <%- key %>
+                            <% _.forIn(_.sortBy(navTree, 'sortIndex'), function(data, key) { %>
+                                <a
+                                    href="<%- data.href %>"
+                                    class="
+                                        uidocs-header__menu-item
+                                        <% if(data.active) { %>
+                                            uidocs-header__menu-item_state_active
+                                        <% } %>
+                                    "
+                                >
+                                    <%- data.value %>
                                 </a>
                             <% }) %>
                         </div>
@@ -31,14 +39,22 @@
                 <div class="uidocs-page">
                     <div class="ui-grid ui-grid_theme_divider ui-grid_size_xl">
                         <div class="ui-grid__item ui-width-1-4">
-                            <% _.forIn(navTree.core.children, function(value, key) { %>
+                            <% _.forIn(_.sortBy(navTree.core.children, 'sortIndex'), function(data, key) { %>
                                 <div class="uidocs-nav">
                                     <div class="uidocs-nav__title">
-                                        <%- key %>
+                                        <%- data.value %>
                                     </div>
-                                    <% _.forIn(value.children, function(value, key) { %>
-                                        <a href="<%- value.href %>" class="uidocs-nav__item">
-                                            <%- key %>
+                                    <% _.forIn(_.sortBy(data.children, 'sortIndex'), function(data, key) { %>
+                                        <a
+                                            href="<%- data.href %>"
+                                            class="
+                                                uidocs-nav__item
+                                                <% if(data.active) { %>
+                                                    uidocs-nav__item_state_active
+                                                <% } %>
+                                            "
+                                        >
+                                            <%- data.value %>
                                         </a>
                                     <% }) %>
                                 </div>

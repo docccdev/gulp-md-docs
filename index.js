@@ -11,10 +11,12 @@ exports.default = function () {
     var renderBlock = _lodash2.default.extend(new _marked2.default.Renderer(), templateCompiled.block);
     var styleFile = _fs2.default.readFileSync(options.stylePath);
 
-    var collectedDocs = [];
+    var collectionDocs = [];
     var navTree = {};
+    var navIndex = {};
+    var counter = 0;
 
-    function bufferContents(file, i) {
+    function bufferContents(file) {
         if (file.isNull()) return;
         if (file.isStream()) return this.emit('error', new _gulpUtil2.default.PluginError(PLUGIN_NAME, 'Streaming not supported'));
 
@@ -22,55 +24,71 @@ exports.default = function () {
             var markdown = parseMarkdown(file);
 
             if (markdown.path) {
-                var filePath = markdown.path;
-                var pathSep = filePath.split(_path2.default.sep);
-                var dirPath = _path2.default.dirname(filePath);
-                var static_path = _path2.default.relative(dirPath, __dirname);
+                (function () {
+                    var filePath = markdown.path;
+                    var filePathArray = filePath.split(_path2.default.sep);
+                    var dirPath = _path2.default.dirname(filePath);
+                    var basePath = _path2.default.relative(dirPath, __dirname);
 
-                _lodash2.default.each(pathSep, function (value, index) {
-                    var currentPathSep = pathSep.slice(0, index + 1);
-                    var href = formatPathHtml(_path2.default.join.apply(null, currentPathSep));
-                    var objectPath = currentPathSep.join('.children.');
-                    var currentNav = _lodash2.default.get(navTree, objectPath);
+                    _lodash2.default.each(filePathArray, function (value, index) {
+                        var currentFilePathArray = filePathArray.slice(0, index + 1);
+                        var href = formatPathHtml(_path2.default.join.apply(null, currentFilePathArray));
+                        var objectPath = currentFilePathArray.join('.children.');
+                        var currentNav = _lodash2.default.get(navTree, objectPath);
 
-                    if (!currentNav) {
-                        _lodash2.default.set(navTree, objectPath, { href: href });
-                    }
-                });
+                        if (!currentNav) {
+                            _lodash2.default.set(navTree, objectPath, { href: href, value: value });
+                        }
+                    });
 
-                collectedDocs.push({
-                    path: formatPathHtml(markdown.path),
-                    static_path: static_path,
-                    html: (0, _marked2.default)(markdown.content, {
-                        renderer: renderBlock
-                    })
-                });
+                    _lodash2.default.set(navIndex, filePathArray.join('.children.'), { sortIndex: markdown.sortIndex || counter++ });
+
+                    collectionDocs.push({
+                        path: filePath,
+                        pathArray: filePathArray,
+                        basePath: basePath,
+                        content: (0, _marked2.default)(markdown.content, {
+                            renderer: renderBlock
+                        })
+                    });
+                })();
             }
         } catch (err) {
-            _gulpUtil2.default.log(_gulpUtil2.default.colors.red('ERROR failed to parse api doc ' + file.path), err);
+            _gulpUtil2.default.log(_gulpUtil2.default.colors.red('ERROR failed to parse ' + file.path), err);
         }
     }
 
     function endStream() {
         var _this = this;
 
-        _lodash2.default.each(collectedDocs, function (data) {
+        _lodash2.default.each(collectionDocs, function (data) {
             try {
-                var newFile = new _gulpUtil2.default.File({
-                    path: data.path,
-                    contents: new Buffer(templateCompiled.base({
-                        static_path: data.static_path,
-                        navTree: navTree,
-                        content: data.html
-                    }))
-                });
-                _this.emit('data', newFile);
-                _gulpUtil2.default.log(_gulpUtil2.default.colors.green(data.path));
+                (function () {
+                    var filePath = formatPathHtml(data.path);
+                    var navTreeActive = {};
+
+                    _lodash2.default.each(data.pathArray, function (value, index) {
+                        var currentFilePathArray = data.pathArray.slice(0, index + 1);
+                        var objectPath = currentFilePathArray.join('.children.');
+
+                        _lodash2.default.set(navTreeActive, objectPath, { active: true });
+                    });
+
+                    var newFile = new _gulpUtil2.default.File({
+                        path: filePath,
+                        contents: new Buffer(templateCompiled.base({
+                            basePath: data.basePath,
+                            navTree: _lodash2.default.merge(navTreeActive, navIndex, navTree),
+                            content: data.content
+                        }))
+                    });
+                    _this.emit('data', newFile);
+                    _gulpUtil2.default.log(_gulpUtil2.default.colors.green(filePath));
+                })();
             } catch (err) {
-                _gulpUtil2.default.log(_gulpUtil2.default.colors.red('ERROR write a file ' + data.path), err);
+                _gulpUtil2.default.log(_gulpUtil2.default.colors.red('ERROR write a file ' + filePath), err);
             }
         });
-
         this.emit('end');
     }
 
@@ -136,10 +154,13 @@ function parseMarkdown(file) {
     var fileString = file.contents.toString();
     var regexp = /<!--([\s\S]*)-->/;
     var splitText = fileString.split(/\n\n/);
-    var optionString = regexp.exec(fileString);
+    var optionArray = regexp.exec(fileString) || [];
+    var optionString = _lodash2.default.trim(optionArray[1]);
+    var optionSplit = optionString.split('|');
 
     return {
-        path: optionString ? _lodash2.default.trim(optionString[1]) : null,
+        path: optionSplit[0] ? optionSplit[0] : null,
+        sortIndex: Number(optionSplit[1]),
         content: splitText.splice(1, splitText.length - 1).join('\n\n')
     };
 }
