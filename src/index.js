@@ -59,7 +59,6 @@ function formatPathHtml(pathString) {
 export default function (options = {}) {
     const templateCompiled = compileTemplate(options.templatePath);
     const renderBlock = _.extend(new marked.Renderer(), templateCompiled.block);
-    const styleFile = fs.readFileSync(options.stylePath);
 
     const collectionDocs = [];
     const navTree = {};
