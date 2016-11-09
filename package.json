@@ -1,7 +1,7 @@
 {
   "name": "gulp-md-docs",
   "version": "0.1.0",
-  "description": "Building project documentation from *.md files.",
+  "description": "Building navigable HTML documentation from *.md files with code syntax highlighting (via highlight.js), navigation menu and flexible template.",
   "main": "index.js",
   "scripts": {
     "prepublish": "npm run-script build",
