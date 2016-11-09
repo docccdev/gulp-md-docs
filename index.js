@@ -9,6 +9,7 @@ exports.default = function () {
 
     var templateCompiled = compileTemplate(options.templatePath);
     var renderBlock = _lodash2.default.extend(new _marked2.default.Renderer(), templateCompiled.block);
+    var styleFile = _fs2.default.readFileSync(options.stylePath);
 
     var collectionDocs = [];
     var navTree = {};
