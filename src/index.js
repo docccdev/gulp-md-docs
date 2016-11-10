@@ -35,6 +35,18 @@ function compileTemplate(templatePath) {
         if(templatePath.block.paragraph) {
             result.block.paragraph = getTemplate(templatePath.block.paragraph);
         }
+        if(templatePath.block.codespan) {
+            result.block.codespan = getTemplate(templatePath.block.codespan);
+        }
+        if(templatePath.block.table) {
+            result.block.table = getTemplate(templatePath.block.table);
+        }
+        if(templatePath.block.tablerow) {
+            result.block.tablerow = getTemplate(templatePath.block.tablerow);
+        }
+        if(templatePath.block.tablecell) {
+            result.block.tablecell = getTemplate(templatePath.block.tablecell);
+        }
     }
     return result;
 }

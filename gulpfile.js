@@ -8,9 +8,13 @@ gulp.task('default', function() {
             base: './documentation/resource/template.html',
             block: {
                 code: './documentation/resource/block/code.html',
+                codespan: './documentation/resource/block/codespan.html',
                 hr: './documentation/resource/block/hr.html',
                 heading: './documentation/resource/block/heading.html',
                 paragraph: './documentation/resource/block/paragraph.html',
+                table: './documentation/resource/block/table.html',
+                tablerow: './documentation/resource/block/tablerow.html',
+                tablecell: './documentation/resource/block/tablecell.html',
             }
         }
     }))
