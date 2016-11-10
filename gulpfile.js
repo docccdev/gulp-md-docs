@@ -1,12 +1,20 @@
 var gulp = require('gulp');
-var gulpMdDocs = require('./index.js');
+var gulpMdDocs = require('./dist/index.js');
 
 gulp.task('default', function() {
   return gulp.src('example/**/*.md')
     .pipe(gulpMdDocs({
-        stylePath: './template/style2.css',
+        templates: {
+            base: './documentation/resource/template.html',
+            block: {
+                code: './documentation/resource/block/code.html',
+                hr: './documentation/resource/block/hr.html',
+                heading: './documentation/resource/block/heading.html',
+                paragraph: './documentation/resource/block/paragraph.html',
+            }
+        }
     }))
-    .pipe(gulp.dest('docs'));
+    .pipe(gulp.dest('documentation'));
 });
 
 gulp.task('watch', function() {

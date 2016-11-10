@@ -16,22 +16,27 @@ function getTemplate(file_path) {
 }
 
 function compileTemplate(templatePath) {
-    if(!_.isObject(templatePath)) {
-        templatePath = {};
-    }
-    if(!_.isObject(templatePath.block)) {
-        templatePath.block = {};
+    const result = templatePath;
+
+    if(templatePath.base) {
+        result.base = getTemplate(templatePath.base);
     }
 
-    return {
-        base: getTemplate(templatePath.base || path.join(__dirname, 'template/base.html')),
-        block: {
-            code: getTemplate(templatePath.block.code || path.join(__dirname, 'template/block/code.html')),
-            hr: getTemplate(templatePath.block.hr || path.join(__dirname, 'template/block/hr.html')),
-            heading: getTemplate(templatePath.block.heading || path.join(__dirname, 'template/block/heading.html')),
-            paragraph: getTemplate(templatePath.block.paragraph || path.join(__dirname, 'template/block/paragraph.html')),
+    if(_.isObject(templatePath.block)) {
+        if(templatePath.block.code) {
+            result.block.code = getTemplate(templatePath.block.code);
+        }
+        if(templatePath.block.hr) {
+            result.block.hr = getTemplate(templatePath.block.hr);
+        }
+        if(templatePath.block.heading) {
+            result.block.heading = getTemplate(templatePath.block.heading);
+        }
+        if(templatePath.block.paragraph) {
+            result.block.paragraph = getTemplate(templatePath.block.paragraph);
         }
     }
+    return result;
 }
 
 function parseMarkdown(file) {
@@ -56,9 +61,21 @@ function formatPathHtml(pathString) {
     });
 }
 
-export default function (options = {}) {
-    const templateCompiled = compileTemplate(options.templatePath);
-    const renderBlock = _.extend(new marked.Renderer(), templateCompiled.block);
+export default function (settings = {}) {
+    let templateCompiled;
+    let renderBlock;
+
+    if (_.isObject(settings.templates)) {
+        templateCompiled = compileTemplate(settings.templates);
+    } else {
+        return this.emit('error', new gutil.PluginError(PLUGIN_NAME,  'There are no settings'));
+    }
+
+    if(_.isObject(templateCompiled.block)) {
+        renderBlock = _.extend(new marked.Renderer(), templateCompiled.block);
+    } else {
+        renderBlock = {};
+    }
 
     const collectionDocs = [];
     const navTree = {};
@@ -75,7 +92,7 @@ export default function (options = {}) {
                 const filePath = markdown.path;
                 const filePathArray = filePath.split(path.sep);
                 const dirPath = path.dirname(filePath)
-                const basePath = path.relative(dirPath, __dirname);
+                const basePath = path.relative(dirPath, '');
 
                 _.each(filePathArray, (value, index) => {
                     const currentFilePathArray = filePathArray.slice(0, index + 1);
@@ -124,9 +141,11 @@ export default function (options = {}) {
                     contents: new Buffer(templateCompiled.base({
                         basePath: data.basePath,
                         navTree: _.merge(navTreeActive, navIndex, navTree),
-                        content: data.content
+                        content: data.content,
                     }))
                 });
+
+
                 this.emit('data', newFile);
                 gutil.log(gutil.colors.green(filePath));
             } catch (err) {
