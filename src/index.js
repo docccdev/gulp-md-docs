@@ -77,8 +77,8 @@ export default function (settings = {}) {
     let templateCompiled;
     let renderBlock;
 
-    if (_.isObject(settings.templates)) {
-        templateCompiled = compileTemplate(settings.templates);
+    if (_.isObject(settings.template)) {
+        templateCompiled = compileTemplate(settings.template);
     } else {
         return this.emit('error', new gutil.PluginError(PLUGIN_NAME,  'There are no settings'));
     }

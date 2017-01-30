@@ -1,28 +1,27 @@
 var gulp = require('gulp');
 var gulpMdDocs = require('./dist/index.js');
+var copy = require('gulp-contrib-copy');
 
-gulp.task('default', function() {
-  return gulp.src('example/**/*.md')
-    .pipe(gulpMdDocs({
-        templates: {
-            base: './documentation/resource/template.html',
-            block: {
-                code: './documentation/resource/block/code.html',
-                codespan: './documentation/resource/block/codespan.html',
-                hr: './documentation/resource/block/hr.html',
-                heading: './documentation/resource/block/heading.html',
-                paragraph: './documentation/resource/block/paragraph.html',
-                table: './documentation/resource/block/table.html',
-                tablerow: './documentation/resource/block/tablerow.html',
-                tablecell: './documentation/resource/block/tablecell.html',
-            }
-        }
-    }))
-    .pipe(gulp.dest('documentation'));
+var docTemplate = require('./doc_src/index.js');
+
+
+gulp.task('copy_template_root_dir', function() {
+    return gulp.src(docTemplate.root_dir + '/**/*')
+        .pipe(copy())
+        .pipe(gulp.dest('doc_dist'));
 });
 
+gulp.task('compile_doc', function() {
+    return gulp.src('doc_md/**/*.md')
+        .pipe(gulpMdDocs({
+            template: docTemplate
+        }))
+        .pipe(gulp.dest('doc_dist'));
+});
+
+gulp.task('default', ['copy_template_root_dir', 'compile_doc']);
+
+
 gulp.task('watch', function() {
-    gulp.watch('example/**/*.md', function(event) {
-        gulp.run('default');
-    });
+    gulp.watch('example/**/*.md', ['copy_template_root_dir', 'compile_doc']);
 });
