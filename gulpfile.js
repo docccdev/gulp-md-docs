@@ -23,5 +23,5 @@ gulp.task('default', ['copy_template_root_dir', 'compile_doc']);
 
 
 gulp.task('watch', function() {
-    gulp.watch('example/**/*.md', ['copy_template_root_dir', 'compile_doc']);
+    gulp.watch('doc_md/**/*.md', ['copy_template_root_dir', 'compile_doc']);
 });

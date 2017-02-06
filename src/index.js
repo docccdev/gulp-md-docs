@@ -16,13 +16,14 @@ function getTemplate(file_path) {
 }
 
 function compileTemplate(templatePath) {
-    const result = templatePath;
+    const result = {};
 
     if(templatePath.base) {
         result.base = getTemplate(templatePath.base);
     }
 
     if(_.isObject(templatePath.block)) {
+        result.block = {};
         if(templatePath.block.code) {
             result.block.code = getTemplate(templatePath.block.code);
         }
