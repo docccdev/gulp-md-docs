@@ -18,37 +18,14 @@ function getTemplate(file_path) {
 function compileTemplate(templatePath) {
     const result = {};
 
-    if(templatePath.base) {
+    if(_.has(templatePath, 'base')) {
         result.base = getTemplate(templatePath.base);
     }
 
     if(_.isObject(templatePath.block)) {
-        result.block = {};
-        if(templatePath.block.code) {
-            result.block.code = getTemplate(templatePath.block.code);
-        }
-        if(templatePath.block.hr) {
-            result.block.hr = getTemplate(templatePath.block.hr);
-        }
-        if(templatePath.block.heading) {
-            result.block.heading = getTemplate(templatePath.block.heading);
-        }
-        if(templatePath.block.paragraph) {
-            result.block.paragraph = getTemplate(templatePath.block.paragraph);
-        }
-        if(templatePath.block.codespan) {
-            result.block.codespan = getTemplate(templatePath.block.codespan);
-        }
-        if(templatePath.block.table) {
-            result.block.table = getTemplate(templatePath.block.table);
-        }
-        if(templatePath.block.tablerow) {
-            result.block.tablerow = getTemplate(templatePath.block.tablerow);
-        }
-        if(templatePath.block.tablecell) {
-            result.block.tablecell = getTemplate(templatePath.block.tablecell);
-        }
+        result.block = _.mapValues(templatePath.block, getTemplate);
     }
+
     return result;
 }
 
